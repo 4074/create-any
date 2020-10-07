@@ -2,6 +2,7 @@
 
 import { Command } from 'commander'
 import download from './lib/download'
+import setup from './lib/setup'
 
 const program = new Command()
 
@@ -17,5 +18,4 @@ program
 program.parse(process.argv)
 
 download(program.template)
-
-// console.log(program.args)
+setup()

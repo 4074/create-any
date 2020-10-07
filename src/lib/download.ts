@@ -95,7 +95,7 @@ function downloadLocal(filepath: string) {
 }
 
 export default async function download(name: string) {
-  console.log(chalk.green(`Downloading package ${name}`))
+  console.log(`Downloading package ${name}`)
   const arr = name.split(':')
 
   let type = 'npm'
@@ -119,7 +119,7 @@ export default async function download(name: string) {
       break
     }
     default: {
-      console.warn('No avilable type')
+      console.log(chalk.red(`No avilable type from '${name}'`))
     }
   }
 }
