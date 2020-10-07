@@ -1,9 +1,11 @@
+/* eslint-disable no-console */
 import axios from 'axios'
 import spawn from 'cross-spawn'
 import tmp from 'tmp'
 import fs from 'fs-extra'
 import path from 'path'
 import tar from 'tar'
+import chalk from 'chalk'
 
 function getNpmConfig(name: string): string {
   return spawn.sync('npm', ['config', 'get', name]).output.join('').trim()
@@ -41,8 +43,7 @@ function copyFiles(
 
         const distFilepath = path.join(dist, filepath)
         if (fs.existsSync(distFilepath)) {
-          // eslint-disable-next-line no-console
-          console.warn(`File conflict ${distFilepath}, keep old file`)
+          console.log(chalk.yellow(`File conflict ${filepath}, skiped.`))
           continue
         }
         fs.copyFileSync(srcFilepath, distFilepath)
@@ -85,7 +86,8 @@ async function downloadNpmPackage(name: string) {
 }
 
 function downloadGithubRepo(name: string) {
-  //
+  // TODO
+  console.log(name)
 }
 
 function downloadLocal(filepath: string) {
@@ -93,7 +95,7 @@ function downloadLocal(filepath: string) {
 }
 
 export default async function download(name: string) {
-  console.log('Downloading package %s', name)
+  console.log(chalk.green(`Downloading package ${name}`))
   const arr = name.split(':')
 
   let type = 'npm'

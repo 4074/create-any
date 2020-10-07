@@ -21,6 +21,7 @@
   "homepage": "https://github.com/4074/create-any#readme",
   "dependencies": {
     "axios": "^0.20.0",
+    "chalk": "^4.1.0",
     "commander": "^6.1.0",
     "cross-spawn": "^7.0.3",
     "fs-extra": "^9.0.1",
