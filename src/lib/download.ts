@@ -88,8 +88,8 @@ function downloadGithubRepo(name: string) {
   //
 }
 
-function downloadLocal(folder: string) {
-  //
+function downloadLocal(filepath: string) {
+  copyFiles(path.resolve(process.cwd(), filepath), process.cwd())
 }
 
 export default async function download(name: string) {
