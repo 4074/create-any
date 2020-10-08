@@ -11,6 +11,7 @@ export default async function setup() {
 
   const spinner = ora('Setting package.json').start()
 
+  // Read package.json from template
   const packageJson = JSON.parse(
     fs.readFileSync(packageJsonPath).toString('utf-8')
   )
@@ -27,17 +28,17 @@ export default async function setup() {
     'homepage'
   ]
 
+  // Re-create package.json
   fs.removeSync(packageJsonPath)
   spawn.sync('npm', ['init', '-y'])
-
-  const packageJsonInit = JSON.parse(
+  const packageJsonInitial = JSON.parse(
     fs.readFileSync(packageJsonPath).toString('utf-8')
   )
 
+  // Generate the final package.json
   for (const key of packageJsonChangeKeys) {
-    packageJson[key] = packageJsonInit[key]
+    packageJson[key] = packageJsonInitial[key]
   }
-
   const deps = Object.keys(packageJson.dependencies)
   const devDeps = Object.keys(packageJson.devDependencies)
 

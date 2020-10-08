@@ -5,7 +5,7 @@ import chalk from 'chalk'
 export default function welcome() {
   console.log()
   console.log(
-    chalk.blue(
+    chalk.hex('#60d6a7')(
       figlet.textSync('Create Any', {
         horizontalLayout: 'fitted'
       })

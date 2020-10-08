@@ -13,7 +13,7 @@ program
   .description('Create a node ecosystem application with template')
   .option(
     '-t, --template <type>',
-    'Add the specified type of cheese',
+    'Pass the template to the project creater',
     'koa-autoboot'
   )
 

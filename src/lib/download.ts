@@ -23,6 +23,7 @@ function copyFiles(
   const ignoreFiles = ['node_modules', '.git']
   const warn = []
 
+  // BFS to copy all files
   const queue = ['']
   while (queue.length) {
     let count = queue.length
@@ -47,6 +48,8 @@ function copyFiles(
         fs.ensureDirSync(path.join(dist, dir))
 
         const distFilepath = path.join(dist, filepath)
+
+        // Detect if the file exists. If exists, skipping.
         if (fs.existsSync(distFilepath)) {
           warn.push(`File conflict ${filepath}, skiped.`)
           continue
@@ -56,6 +59,7 @@ function copyFiles(
     }
   }
 
+  // Log conflict infos
   if (warn.length) {
     spinner.clear()
     console.log(chalk.yellow(warn.join('\n')))
@@ -76,8 +80,9 @@ async function downloadFiles(url: string) {
   const filepath = path.join(tmpobj.name, filename)
   fs.writeFileSync(filepath, fileResp.data)
 
+  // Extract the tgz/zip file
   if (/\.tgz$/.test(filepath)) {
-    tar.x({
+    tar.extract({
       cwd: tmpobj.name,
       file: filepath,
       sync: true
@@ -88,6 +93,7 @@ async function downloadFiles(url: string) {
 
   fs.removeSync(filepath)
 
+  // Copy files to the project folder
   const files = fs.readdirSync(tmpobj.name)
   copyFiles(
     files.length ? path.join(tmpobj.name, files[0]) : tmpobj.name,
@@ -101,6 +107,7 @@ async function downloadNpmPackage(name: string) {
   const registry = getNpmConfig('registry') || 'https://registry.npmjs.org/'
   const url = `${registry}${name}`
 
+  // Get the download url
   const resp = await axios.get(url)
   const fileUrl = resp.data.versions[resp.data['dist-tags'].latest].dist.tarball
 
