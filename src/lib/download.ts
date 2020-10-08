@@ -5,6 +5,7 @@ import tmp from 'tmp'
 import fs from 'fs-extra'
 import path from 'path'
 import tar from 'tar'
+import decompress from 'decompress'
 import chalk from 'chalk'
 import ora from 'ora'
 
@@ -62,6 +63,40 @@ function copyFiles(
   }
 }
 
+async function downloadFiles(url: string) {
+  const tmpobj = tmp.dirSync({ unsafeCleanup: true })
+
+  const fileResp = await axios({
+    method: 'get',
+    url,
+    responseType: 'arraybuffer'
+  })
+
+  const filename = url.split('/').pop()
+  const filepath = path.join(tmpobj.name, filename)
+  fs.writeFileSync(filepath, fileResp.data)
+
+  if (/\.tgz$/.test(filepath)) {
+    tar.x({
+      cwd: tmpobj.name,
+      file: filepath,
+      sync: true
+    })
+  } else {
+    await decompress(filepath, tmpobj.name)
+  }
+
+  fs.removeSync(filepath)
+
+  const files = fs.readdirSync(tmpobj.name)
+  copyFiles(
+    files.length ? path.join(tmpobj.name, files[0]) : tmpobj.name,
+    process.cwd()
+  )
+
+  tmpobj.removeCallback()
+}
+
 async function downloadNpmPackage(name: string) {
   const registry = getNpmConfig('registry') || 'https://registry.npmjs.org/'
   const url = `${registry}${name}`
@@ -69,35 +104,11 @@ async function downloadNpmPackage(name: string) {
   const resp = await axios.get(url)
   const fileUrl = resp.data.versions[resp.data['dist-tags'].latest].dist.tarball
 
-  const tmpobj = tmp.dirSync({ unsafeCleanup: true })
-
-  const fileResp = await axios({
-    method: 'get',
-    url: fileUrl,
-    responseType: 'arraybuffer'
-  })
-
-  const filePath = path.join(tmpobj.name, fileUrl.split('/').pop())
-  fs.writeFileSync(filePath, fileResp.data)
-
-  tar.x({
-    cwd: tmpobj.name,
-    file: filePath,
-    sync: true
-  })
-
-  copyFiles(
-    path.join(tmpobj.name, 'package'),
-    process.cwd(),
-    (filename) => !/map$/.test(filename)
-  )
-
-  tmpobj.removeCallback()
+  await downloadFiles(fileUrl)
 }
 
-function downloadGithubRepo(name: string) {
-  // TODO
-  console.log(name)
+async function downloadGithubRepo(name: string) {
+  await downloadFiles(`https://github.com/${name}/archive/master.zip`)
 }
 
 function downloadLocal(filepath: string) {
@@ -116,24 +127,31 @@ export default async function download(name: string) {
     finalName = arr.join(':')
   }
 
-  switch (type) {
-    case 'npm': {
-      await downloadNpmPackage(finalName)
-      break
+  try {
+    switch (type) {
+      case 'npm': {
+        await downloadNpmPackage(finalName)
+        break
+      }
+      case 'github': {
+        await downloadGithubRepo(finalName)
+        break
+      }
+      case 'file': {
+        downloadLocal(finalName)
+        break
+      }
+      default: {
+        if (/^https?.*\.zip$/.test(name)) {
+          await downloadFiles(name)
+        } else {
+          throw Error(`No avilable type from '${name}'`)
+        }
+      }
     }
-    case 'github': {
-      downloadGithubRepo(finalName)
-      break
-    }
-    case 'file': {
-      downloadLocal(finalName)
-      break
-    }
-    default: {
-      spinner.fail()
-      const error = Error(`No avilable type from '${name}'`)
-      throw error
-    }
+  } catch (error) {
+    spinner.fail()
+    throw error
   }
 
   spinner.succeed()
