@@ -6,6 +6,9 @@ import fs from 'fs-extra'
 import path from 'path'
 import tar from 'tar'
 import chalk from 'chalk'
+import ora from 'ora'
+
+const spinner = ora()
 
 function getNpmConfig(name: string): string {
   return spawn.sync('npm', ['config', 'get', name]).output.join('').trim()
@@ -16,7 +19,8 @@ function copyFiles(
   dist: string,
   filter?: (filename: string, filepath: string) => boolean
 ) {
-  const ignoreFiles = ['node_modules']
+  const ignoreFiles = ['node_modules', '.git']
+  const warn = []
 
   const queue = ['']
   while (queue.length) {
@@ -43,12 +47,18 @@ function copyFiles(
 
         const distFilepath = path.join(dist, filepath)
         if (fs.existsSync(distFilepath)) {
-          console.log(chalk.yellow(`File conflict ${filepath}, skiped.`))
+          warn.push(`File conflict ${filepath}, skiped.`)
           continue
         }
         fs.copyFileSync(srcFilepath, distFilepath)
       }
     }
+  }
+
+  if (warn.length) {
+    spinner.clear()
+    console.log(chalk.yellow(warn.join('\n')))
+    console.log()
   }
 }
 
@@ -95,7 +105,8 @@ function downloadLocal(filepath: string) {
 }
 
 export default async function download(name: string) {
-  console.log(`Downloading package ${name}`)
+  spinner.start(`Loading template ${chalk.green(name)}`)
+
   const arr = name.split(':')
 
   let type = 'npm'
@@ -107,7 +118,7 @@ export default async function download(name: string) {
 
   switch (type) {
     case 'npm': {
-      downloadNpmPackage(finalName)
+      await downloadNpmPackage(finalName)
       break
     }
     case 'github': {
@@ -119,7 +130,11 @@ export default async function download(name: string) {
       break
     }
     default: {
-      console.log(chalk.red(`No avilable type from '${name}'`))
+      spinner.fail()
+      const error = Error(`No avilable type from '${name}'`)
+      throw error
     }
   }
+
+  spinner.succeed()
 }

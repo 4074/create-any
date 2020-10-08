@@ -2,13 +2,14 @@
 import spawn from 'cross-spawn'
 import fs from 'fs-extra'
 import path from 'path'
+import ora from 'ora'
 
-export default function setup(): void {
-  console.log('Setup project')
+export default async function setup() {
   const dir = process.cwd()
-
   const packageJsonPath = path.join(dir, 'package.json')
   if (!fs.existsSync(packageJsonPath)) return
+
+  const spinner = ora('Setting package.json').start()
 
   const packageJson = JSON.parse(
     fs.readFileSync(packageJsonPath).toString('utf-8')
@@ -44,6 +45,9 @@ export default function setup(): void {
   packageJson.dependencies = {}
   packageJson.devDependencies = {}
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
+
+  spinner.succeed()
+  console.log()
 
   if (deps.length) spawn.sync('npm', ['i', ...deps], { stdio: 'inherit' })
   if (devDeps.length)
