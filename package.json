@@ -1,6 +1,6 @@
 {
   "name": "create-any",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Create any node ecosystem application with a template.",
   "main": "dist/index.js",
   "scripts": {
@@ -19,6 +19,9 @@
     "url": "https://github.com/4074/create-any/issues"
   },
   "homepage": "https://github.com/4074/create-any#readme",
+  "bin": {
+    "create-any": "dist/index.js"
+  },
   "dependencies": {
     "axios": "^0.20.0",
     "chalk": "^4.1.0",
