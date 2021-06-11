@@ -105,13 +105,21 @@ async function downloadFiles(url: string) {
 
 async function downloadNpmPackage(name: string) {
   const registry = getNpmConfig('registry') || 'https://registry.npmjs.org/'
-  const url = `${registry}${name}`
+  let fileUrl = ''
 
-  // Get the download url
-  const resp = await axios.get(url)
-  const fileUrl = resp.data.versions[resp.data['dist-tags'].latest].dist.tarball
+  // Get the download url.
+  // Try prefix with `ca-template-` first.
+  for (const prefix of ['ca-template-', '']) {
+    const url = `${registry}${prefix}${name}`
+    // eslint-disable-next-line no-await-in-loop
+    const resp = await axios.get(url)
+    console.log(url, resp.data.error)
+    if (resp.data.error) continue
+    fileUrl = resp.data.versions[resp.data['dist-tags'].latest].dist.tarball
+    break
+  }
 
-  await downloadFiles(fileUrl)
+  return downloadFiles(fileUrl)
 }
 
 async function downloadGithubRepo(name: string) {
@@ -120,6 +128,15 @@ async function downloadGithubRepo(name: string) {
 
 function downloadLocal(filepath: string) {
   copyFiles(path.resolve(process.cwd(), filepath), process.cwd())
+}
+
+function ensureGitIgnore() {
+  const dir = process.cwd()
+  if (fs.existsSync(path.join(dir, '.gitignore'))) return
+  fs.copyFileSync(
+    path.resolve(__dirname, '../../gitignore.template'),
+    path.resolve(dir, '.gitignore')
+  )
 }
 
 export default async function download(name: string) {
@@ -156,6 +173,7 @@ export default async function download(name: string) {
         }
       }
     }
+    ensureGitIgnore()
   } catch (error) {
     spinner.fail()
     throw error

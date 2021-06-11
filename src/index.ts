@@ -14,7 +14,7 @@ program
   .option(
     '-t, --template <type>',
     'Pass the template to the project creater',
-    'koa-autoboot'
+    'typescript'
   )
 
 program.parse(process.argv)
