@@ -113,10 +113,10 @@ async function downloadNpmPackage(name: string) {
     const url = `${registry}${prefix}${name}`
     // eslint-disable-next-line no-await-in-loop
     const resp = await axios.get(url)
-    console.log(url, resp.data.error)
-    if (resp.data.error) continue
-    fileUrl = resp.data.versions[resp.data['dist-tags'].latest].dist.tarball
-    break
+    if (!resp.data.error) {
+      fileUrl = resp.data.versions[resp.data['dist-tags'].latest].dist.tarball
+      break
+    }
   }
 
   return downloadFiles(fileUrl)

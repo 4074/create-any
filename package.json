@@ -1,6 +1,6 @@
 {
   "name": "create-any",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Create any node ecosystem application with a template.",
   "main": "dist/index.js",
   "scripts": {
